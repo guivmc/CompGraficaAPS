@@ -21,6 +21,9 @@ public class KeyBoard implements KeyListener{
 
         if(e.getKeyCode() == KeyEvent.VK_ESCAPE)
             System.exit(0);
+
+        if(e.getKeyCode() == KeyEvent.VK_ENTER)
+            Cena.drawMenu = false;
         
         if(e.getKeyChar() == 'a' || e.getKeyCode() == 149) {
             System.out.println("esquerda");
