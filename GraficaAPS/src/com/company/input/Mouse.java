@@ -4,11 +4,13 @@ import com.company.cena.Cena;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 
-public class Mouse implements  MouseListener {
+public class Mouse implements MouseListener {
     private Cena cena;
+    private Integer previousX = null;
 
-    public Mouse(Cena cena){
+    public Mouse(Cena cena) {
         this.cena = cena;
+
     }
 
     @Override
@@ -38,7 +40,25 @@ public class Mouse implements  MouseListener {
 
     @Override
     public void mouseMoved(MouseEvent e) {
-        System.out.println( e.getX());
+
+        if(!Cena.pause) {
+            int currentX = e.getX();
+
+            if (previousX == null)
+                previousX = currentX;
+
+            if (currentX < previousX) {
+
+                Cena.xRectTranslate += -0.05f;
+                //System.out.println("esquerda");
+            } else if (e.getX() > previousX) {
+                Cena.xRectTranslate += 0.05f;
+                //System.out.println("direita");
+            } else
+                System.out.println("parado");
+
+            previousX = currentX;
+        }
     }
 
     @Override

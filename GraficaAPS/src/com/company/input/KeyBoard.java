@@ -24,17 +24,19 @@ public class KeyBoard implements KeyListener{
 
         if(e.getKeyCode() == KeyEvent.VK_ENTER)
             Cena.drawMenu = false;
-        
-        if(e.getKeyChar() == 'a' || e.getKeyCode() == 149) {
-            System.out.println("esquerda");
-            Cena.xRectTranslate += -0.1f;
+
+        if(e.getKeyCode() == KeyEvent.VK_P)
+            Cena.pause = !Cena.pause;
+
+        if(!Cena.pause) {
+            if (e.getKeyChar() == 'a' || e.getKeyCode() == 149) {
+//            System.out.println("esquerda");
+                Cena.xRectTranslate += -0.05f;
+            } else if (e.getKeyChar() == 'd' || e.getKeyCode() == 151) {
+//            System.out.println("direita");
+                Cena.xRectTranslate += 0.05f;
+            }
         }
-        else if(e.getKeyChar() == 'd' || e.getKeyCode() ==  151) {
-            System.out.println("direita");
-            Cena.xRectTranslate += 0.1f;
-        }
-        else
-            Cena.xRectTranslate = 0;
     }
 
     @Override

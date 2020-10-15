@@ -5,6 +5,7 @@ import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.awt.TextRenderer;
+import com.jogamp.opengl.util.gl2.GLUT;
 
 import java.awt.*;
 
@@ -14,9 +15,13 @@ import java.awt.*;
 public class Cena implements GLEventListener {
 
     public static final float DEG2RAD = (float) (3.14159 / 180.0);
-    public static float xRectTranslate = 0;
+    public static float xRectTranslate = -0.25f;
+    public static float xBallTranslate = 0;
+    public static float yBallTranslate = 0;
     public static boolean drawMenu = true;
-
+    public static boolean pause = false;
+    public static int lives = 5;
+    public static int score = 0;
 
     private float xMin, xMax, yMin, yMax, zMin, zMax;
     GLU glu;
@@ -35,6 +40,9 @@ public class Cena implements GLEventListener {
     public void display(GLAutoDrawable drawable) {
         //obtem o contexto Opengl
         GL2 gl = drawable.getGL().getGL2();
+        //objeto para desenho 3D
+        GLUT glut = new GLUT();
+
         //define a cor da janela (R, G, G, alpha)
         gl.glClearColor(0, 0, 0, 1);
         //limpa a janela com a cor especificada
@@ -49,17 +57,52 @@ public class Cena implements GLEventListener {
         gl.glColor3f(1, 1, 1); //cor branca
 
         //TODO: REMOVER
-        gl.glBegin(GL2.GL_POINTS);
-        gl.glVertex2f(0, 0);
-        gl.glEnd();
+//        gl.glBegin(GL2.GL_POINTS);
+//        gl.glVertex2f(0, 0);
+//        gl.glEnd();
+
+        //desenha um cubo
+        glut.glutWireTeapot(50);
+
 
         if (drawMenu)
             DesenhaMenu();
         else {
+            if (pause)
+                this.DesenhaPause();
+
+            this.DesenhaBoarda(gl);
+            this.DesenhaHUD();
+            this.drawFlower2(gl);
             this.DesenhaRetangulo(gl);
             this.DesenhaBola(gl);
+
         }
         gl.glFlush();
+    }
+
+    private void DesenhaPause() {
+        TextRenderer pause = new TextRenderer(new Font("Default", Font.PLAIN, 18));
+        Renderer.desenhaTexto(90, 360, Color.BLUE, pause, "PAUSE");
+    }
+
+    private void DesenhaBoarda(GL2 gl)
+    {
+        gl.glBegin(GL2.GL_LINES);
+
+        gl.glVertex2f(.5f, -.3f); //right
+        gl.glVertex2f(.5f, .8f); //right
+
+        gl.glVertex2f(.5f, -.3f);//bottom
+        gl.glVertex2f(-1.7f, -.3f);//bottom
+
+        gl.glVertex2f(-1.7f, -.3f);//left
+        gl.glVertex2f(-1.7f, .8f);//left
+
+        gl.glVertex2f(-1.7f, .8f);//top
+        gl.glVertex2f(.5f, .8f);//top
+
+        gl.glEnd();
     }
 
     private void DesenhaMenu() {
@@ -70,11 +113,19 @@ public class Cena implements GLEventListener {
 
         Renderer.desenhaTexto(90, 360, Color.BLUE, rules, "Rules: -Use A/left arrow or D/right arrow ");
         Renderer.desenhaTexto(90, 340, Color.BLUE, rules, "or the mouse to control the paddle.");
-        Renderer.desenhaTexto(90, 320, Color.BLUE, rules, "-Score 300 points to go to the next level.");
-        Renderer.desenhaTexto(90, 300, Color.BLUE, rules, "-Lose 2 times and it is game over.");
-        Renderer.desenhaTexto(90, 280, Color.BLUE, rules, "-Press enter to start, esc to exit.");
+        Renderer.desenhaTexto(90, 320, Color.BLUE, rules, "-Score 200 points to go to the next level.");
+        Renderer.desenhaTexto(90, 300, Color.BLUE, rules, "-Lose 5 times and it is game over.");
+        Renderer.desenhaTexto(90, 280, Color.BLUE, rules, "-P to (un)pause.");
+        Renderer.desenhaTexto(90, 260, Color.BLUE, rules, "-Press enter to start, esc to exit.");
 
         Renderer.desenhaTexto(90, 200, Color.BLUE, rules, "Guilherme V. M. Carvalhal (21002514)");
+    }
+
+    private void DesenhaHUD() {
+        TextRenderer HUD = new TextRenderer(new Font("Default", Font.PLAIN, 15));
+
+        Renderer.desenhaTexto(10, 450, Color.WHITE, HUD, "Score: " + score);
+        Renderer.desenhaTexto(400, 450, Color.WHITE, HUD, "" + lives);
     }
 
     private void DesenhaRetangulo(GL2 gl) {
@@ -91,15 +142,37 @@ public class Cena implements GLEventListener {
     }
 
     private void DesenhaBola(GL2 gl) {
-        gl.glBegin(GL2.GL_TRIANGLE_FAN);
 
+        gl.glPushMatrix();
+        gl.glTranslatef(Cena.xBallTranslate, Cena.yBallTranslate, 0);
+        gl.glBegin(GL2.GL_TRIANGLE_FAN);
         for (int i = 0; i < 360; i++) {
             //convert degrees into radians
             float degInRad = i * Cena.DEG2RAD;
-            gl.glVertex2f((float) Math.cos(degInRad) * 0.15f, (float) Math.sin(degInRad) * 0.15f);
+            gl.glVertex2f((float) Math.cos(degInRad) * 0.05f, (float) Math.sin(degInRad) * 0.05f);
         }
 
         gl.glEnd();
+        gl.glPopMatrix();
+    }
+
+    public void drawFlower2(GL2 gl) {
+        gl.glPushMatrix();
+        gl.glTranslatef(0.35f, 0.9f, 0);
+        gl.glBegin(GL2.GL_LINE_LOOP);
+
+        for (int i = 0; i < 360; i++) {
+            //convert degrees into radians
+            float degInRad = i * DEG2RAD;
+
+            float radius = (float) Math.sin(degInRad * 4);
+
+            gl.glVertex2f((float) Math.cos(degInRad) * radius * 0.05f, (float) Math.sin(degInRad) * radius * 0.05f);
+
+        }
+
+        gl.glEnd();
+        gl.glPopMatrix();
     }
 
     @Override
