@@ -22,6 +22,7 @@ public class Cena implements GLEventListener {
     public static boolean pause = false;
     public static int lives = 5;
     public static int score = 0;
+    private float ballSpeed = 0.005f;
 
     public static directions currentDirection = directions.leftUp;
 
@@ -62,17 +63,6 @@ public class Cena implements GLEventListener {
             desenho da cena        
         *
         */
-
-        gl.glColor3f(1, 1, 1); //cor branca
-
-        //TODO: REMOVER
-//        gl.glPushMatrix();
-//        //gl.glTranslatef(Cena.xRectTranslate, 0.2f, 0);
-//        gl.glBegin(GL2.GL_POINTS);
-//        gl.glVertex2f(0, 0);
-//        gl.glEnd();
-//        gl.glPopMatrix();
-
         //desenha um cubo
         glut.glutWireTeapot(50);
 
@@ -88,6 +78,15 @@ public class Cena implements GLEventListener {
             this.drawFlower2(gl);
             this.DesenhaRetangulo(gl);
             this.DesenhaBola(gl);
+
+            if(score >= 200)
+            {
+                this.ballSpeed = 0.009f;
+                this.DesenhaObstaculo(gl);
+            }
+
+            if(lives <= 0)
+                System.exit(0);
 
             if(!pause)
                 this.UpdateBola();
@@ -144,6 +143,7 @@ public class Cena implements GLEventListener {
     private void DesenhaRetangulo(GL2 gl) {
         //desenha um retangulo
         gl.glPushMatrix();
+        gl.glColor3f(0, 1, 1); //cor branca
         gl.glTranslatef(Cena.xRectTranslate, 0, 0);
         gl.glBegin(GL2.GL_QUADS);
         gl.glVertex2f(-0.8f, -0.1f); //top left
@@ -154,9 +154,19 @@ public class Cena implements GLEventListener {
         gl.glPopMatrix();
     }
 
+    private void DesenhaObstaculo(GL2 gl)
+    {
+        gl.glBegin(GL2.GL_LINES);
+        gl.glColor3f(0, 1, 0); //cor branca
+        gl.glVertex2f(-.55f, .3f); //right
+        gl.glVertex2f(-.55f, .8f); //right
+        gl.glEnd();
+    }
+
     private void DesenhaBola(GL2 gl) {
 
         gl.glPushMatrix();
+        gl.glColor3f(1, 1, 1); //cor branca
         gl.glTranslatef(Cena.xBallTranslate, Cena.yBallTranslate, 0);
         gl.glBegin(GL2.GL_TRIANGLE_FAN);
         for (int i = 0; i < 360; i++) {
@@ -172,6 +182,7 @@ public class Cena implements GLEventListener {
     public void drawFlower2(GL2 gl) {
         gl.glPushMatrix();
         gl.glTranslatef(0.35f, 0.9f, 0);
+        gl.glColor3f(1, 0, 0); //cor branca
         gl.glBegin(GL2.GL_LINE_LOOP);
 
         for (int i = 0; i < 360; i++) {
@@ -190,6 +201,7 @@ public class Cena implements GLEventListener {
 
     private void UpdateBola() {
 
+        //region collision
         //if hit left border
         if (xBallTranslate + 0.05f < -1.6f) {
             if (Cena.currentDirection == directions.leftUp)
@@ -223,24 +235,38 @@ public class Cena implements GLEventListener {
             lives--;
            resetPos();
         }
+        //if hit level 2
+        else if(score >= 200 && ((yBallTranslate > .3f && yBallTranslate < .8f) && xBallTranslate + 0.05f >= -.6f && xBallTranslate + 0.05f <= -.4f)) //&& xBallTranslate + 0.05f >= -.53f && xBallTranslate + 0.05f <= -.58f))
+        {
 
+            if(Cena.currentDirection == directions.leftDown)
+                Cena.currentDirection = directions.rightDown;
+            else if(Cena.currentDirection == directions.rightDown)
+                Cena.currentDirection = directions.leftDown;
+            else if(Cena.currentDirection == directions.rightUp)
+                Cena.currentDirection = directions.leftUp;
+            else if(Cena.currentDirection == directions.leftUp)
+                Cena.currentDirection = directions.rightUp;
+        }
+
+        //endregion
 
         switch (Cena.currentDirection) {
             case leftUp:
-                Cena.xBallTranslate += -0.005f;
-                Cena.yBallTranslate += +0.005f;
+                Cena.xBallTranslate += -ballSpeed;
+                Cena.yBallTranslate += +ballSpeed;
                 break;
             case leftDown:
-                Cena.xBallTranslate += -0.005f;
-                Cena.yBallTranslate += -0.005f;
+                Cena.xBallTranslate += -ballSpeed;
+                Cena.yBallTranslate += -ballSpeed;
                 break;
             case rightUp:
-                Cena.xBallTranslate += +0.005f;
-                Cena.yBallTranslate += +0.005f;
+                Cena.xBallTranslate += +ballSpeed;
+                Cena.yBallTranslate += +ballSpeed;
                 break;
             case rightDown:
-                Cena.xBallTranslate += +0.005f;
-                Cena.yBallTranslate += -0.005f;
+                Cena.xBallTranslate += +ballSpeed;
+                Cena.yBallTranslate += -ballSpeed;
                 break;
         }
     }
@@ -278,7 +304,6 @@ public class Cena implements GLEventListener {
 
     private static void resetPos()
     {
-
         xRectTranslate = -0.25f;
         xBallTranslate = -0.55f;
         yBallTranslate = 0;
