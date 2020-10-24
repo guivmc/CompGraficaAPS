@@ -34,12 +34,16 @@ public class Cena implements GLEventListener {
     }
 
     private float xMin, xMax, yMin, yMax, zMin, zMax;
-    GLU glu;
+    public GLU glu;
+    public int mode;
+    public int tonalizacao = GL2.GL_SMOOTH;
+    public float luzR = .2f, luzG = 0.2f, luzB = .2f;
 
     @Override
     public void init(GLAutoDrawable drawable) {
         //dados iniciais da cena
         glu = new GLU();
+        GL2 gl = drawable.getGL().getGL2();
 
         //Estabelece as coordenadas do SRU (Sistema de Referencia do Universo)
         xMin = yMin = zMin = -1;
@@ -58,13 +62,14 @@ public class Cena implements GLEventListener {
         //limpa a janela com a cor especificada
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
         gl.glLoadIdentity(); //lê a matriz identidade
-        
+
+        iluminacao(gl);
+        ligaLuz(gl);
+
         /*
             desenho da cena        
         *
         */
-        //desenha um cubo
-        glut.glutWireTeapot(50);
 
 
         if (drawMenu)
@@ -83,6 +88,8 @@ public class Cena implements GLEventListener {
             {
                 this.ballSpeed = 0.009f;
                 this.DesenhaObstaculo(gl);
+                this.luzB = 1f;
+                this.luzR = 1f;
             }
 
             if(lives <= 0)
@@ -157,7 +164,7 @@ public class Cena implements GLEventListener {
     private void DesenhaObstaculo(GL2 gl)
     {
         gl.glBegin(GL2.GL_LINES);
-        gl.glColor3f(0, 1, 0); //cor branca
+        //gl.glColor3f(0, 1, 0); //cor branca
         gl.glVertex2f(-.55f, .3f); //right
         gl.glVertex2f(-.55f, .8f); //right
         gl.glEnd();
@@ -308,6 +315,48 @@ public class Cena implements GLEventListener {
         xBallTranslate = -0.55f;
         yBallTranslate = 0;
         currentDirection = directions.leftUp;
+    }
+
+    public void iluminacao(GL2 gl) {
+        float luzAmbiente[] = new float[4];
+        luzAmbiente[0] = luzR;
+        luzAmbiente[1] = luzG;
+        luzAmbiente[2] = luzB;
+        luzAmbiente[3] = 1.0f;
+
+        float luzDifusa[] = {0.7f, 0.7f, 0.7f, 1.0f};
+        float luzEspecular[] = {1.0f, 1.0f, 1.0f, 1.0f};
+        float posicaoLuz[] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+        // capacidade de brilho do material
+        int especMaterial = 60;
+
+        // define a concentra��o do brilho
+        gl.glMateriali(GL2.GL_FRONT, GL2.GL_SHININESS, especMaterial);
+
+        // ativa o uso da luz ambiente
+        gl.glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, luzAmbiente, 0);
+
+        // define os par�metros de luz de n�mero 0 (zero)
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT, luzAmbiente, 0);
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, luzDifusa, 0);
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, luzEspecular, 0);
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, posicaoLuz, 0);
+    }
+
+    public void ligaLuz(GL2 gl) {
+        // habilita a defini��o da cor do material a partir da cor corrente
+        gl.glEnable(GL2.GL_COLOR_MATERIAL);
+        // habilita o uso da ilumina��o na cena
+        gl.glEnable(GL2.GL_LIGHTING);
+        // habilita a luz de n�mero 0
+        gl.glEnable(GL2.GL_LIGHT0);
+
+        /*
+         * Especifica o Modelo de tonaliza��o a ser utilizado GL_FLAT -> modelo de
+         * tonaliza��o flat GL_SMOOTH -> modelo de tonaliza��o GOURAUD (default)
+         */
+        gl.glShadeModel(tonalizacao);
     }
 
     @Override
